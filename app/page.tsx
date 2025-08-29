@@ -7,6 +7,9 @@ import { Survey } from 'survey-react-ui';
 import 'survey-core/survey-core.min.css';
 import { surveyJson } from './surveyJson';
 
+type ValueChangedEvent = { name?: string; value?: unknown };
+type CompletingEvent = { allow: boolean };
+
 type PlayerPanel = {
   player?: string;
   technique?: number;
@@ -34,7 +37,9 @@ type PanelDynamicHandle = {
   panels: Array<{ getQuestionByName: (n: string) => { addError: (m: string) => void } | undefined }>;
 };
 
-function cryptoId() {
+type QuestionHandle = { addError?: (m: string) => void };
+
+function cryptoId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return (crypto as Crypto).randomUUID();
   return 'id-' + Math.random().toString(36).slice(2);
 }
@@ -78,17 +83,16 @@ function buildPayload(data: SurveyData) {
 }
 
 export default function Page() {
-  const survey = useMemo(() => new Model(surveyJson as unknown as any), []);
-  const submittingRef = useRef(false);
+  const survey = useMemo(() => new Model(surveyJson as unknown as Record<string, unknown>), []);
+  const submittingRef = useRef<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
     survey.locale = 'bg';
 
-    const handleValueChanged = (sender: Model, opt: unknown) => {
-      const o = opt as { name?: string; value?: unknown };
-      if (o.name !== 'count') return;
-      const n = parseInt(String(o.value), 10) || 0;
+    const handleValueChanged = (sender: Model, opt: ValueChangedEvent) => {
+      if (opt.name !== 'count') return;
+      const n = parseInt(String(opt.value), 10) || 0;
       const pd = sender.getQuestionByName('players') as unknown as PanelDynamicHandle | undefined;
       if (!pd) return;
       const min = pd.minPanelCount ?? 1;
@@ -96,8 +100,7 @@ export default function Page() {
       pd.panelCount = Math.max(min, Math.min(max, n));
     };
 
-    const handleCompleting = (sender: Model, options: unknown) => {
-      const opts = options as { allow: boolean };
+    const handleCompleting = (sender: Model, options: CompletingEvent) => {
       const pd = sender.getQuestionByName('players') as unknown as PanelDynamicHandle | undefined;
       if (!pd) return;
 
@@ -107,7 +110,7 @@ export default function Page() {
         const name = data[i]?.player;
         if (!name) continue;
         if (seen.has(name)) {
-          opts.allow = false;
+          options.allow = false;
           pd.panels[i].getQuestionByName('player')?.addError('Играчът е избран повече от веднъж.');
           return;
         }
@@ -118,13 +121,13 @@ export default function Page() {
       const target = Math.max(pd.minPanelCount ?? 1, Math.min(pd.maxPanelCount ?? 11, cnt));
       if (pd.panelCount !== target) {
         pd.panelCount = target;
-        opts.allow = false;
+        options.allow = false;
       }
 
       const selfScore = Number((sender.data as SurveyData)?.self_score);
       if (isNaN(selfScore) || selfScore < 1 || selfScore > 5) {
-        opts.allow = false;
-        const q = (sender as unknown as { getQuestionByName: (n: string) => { addError: (m: string) => void } }).getQuestionByName('self_score');
+        options.allow = false;
+        const q = (sender.getQuestionByName('self_score') as unknown) as QuestionHandle;
         q?.addError?.('Самооценката трябва да е между 1.0 и 5.0.');
       }
     };
