@@ -1,7 +1,7 @@
 // app/surveyJson.ts
 export const surveyJson = {
   title: "Оценка на мача – Park the Bus",
-  description: "Анонимна анкета за индивидуално и отборно представяне.",
+  description: "Анкета за индивидуално и отборно представяне.",
   locale: "bg",
   showProgressBar: "bottom",
   showQuestionNumbers: "off",

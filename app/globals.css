@@ -1,42 +1,465 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ========== Park the Bus – Global Styles ========== */
+
+:root{
+  /* Brand */
+  --ptb-bg: #0b1220;
+  --ptb-card: #111a2e;
+  --ptb-accent: #e0b100;
+  --ptb-text: #f2f4f8;
+  --ptb-muted: #9aa4b2;
+  --ptb-border: #223150;
+
+  /* Effects */
+  --ptb-shadow: 0 8px 24px rgba(0,0,0,.35);
+  --ptb-radius: 12px;
+
+  /* SurveyJS bridge */
+  --ptb-input-bg: #0e1730;
+  --ptb-input-border: #243456;
+  --ptb-focus-ring: rgba(224,177,0,.45);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Base reset */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{color-scheme:dark}
+body{
+  background:var(--ptb-bg);
+  color:var(--ptb-text);
+  font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+img{max-width:100%;display:block}
+a{color:var(--ptb-text);text-decoration:none}
+a:hover{color:var(--ptb-accent)}
+code,kbd,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+
+/* Layout */
+.ptb-main{max-width:1200px;margin:0 auto;padding:16px}
+@media (min-width:768px){ .ptb-main{padding:24px} }
+
+/* Header + Nav */
+.ptb-header{background:var(--ptb-card);border-bottom:1px solid var(--ptb-border);position:sticky;top:0;z-index:10}
+.ptb-header__inner{max-width:1200px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:16px}
+.ptb-brand{display:flex;align-items:center;gap:10px}
+.ptb-logo{width:36px;height:36px}
+.ptb-title{font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.ptb-nav{margin-left:auto;display:flex;gap:16px;flex-wrap:wrap}
+.ptb-nav a{padding:6px 8px;border-radius:8px}
+.ptb-nav a:hover{background:rgba(255,255,255,.04)}
+
+@media (max-width:640px){
+  .ptb-header__inner{flex-wrap:wrap}
+  .ptb-nav{width:100%;margin-left:0}
+}
+
+/* Cards */
+.ptb-card{
+  background:var(--ptb-card);
+  border:1px solid var(--ptb-border);
+  border-radius:var(--ptb-radius);
+  padding:16px;
+  box-shadow:var(--ptb-shadow);
+}
+@media (min-width:768px){ .ptb-card{padding:20px} }
+
+/* Buttons */
+.ptb-actions{display:flex;gap:12px;flex-wrap:wrap}
+a.ptb-btn,.ptb-btn{
+  display:inline-block;
+  background:var(--ptb-accent);
+  color:#1b1b1b;
+  border:none;
+  border-radius:10px;
+  padding:10px 14px;
+  font-weight:700;
+  cursor:pointer;
+  line-height:1;
+  transition:background-color .15s ease, color .15s ease, box-shadow .15s ease, transform .06s ease, border-color .15s ease, filter .15s ease;
+}
+.ptb-btn.secondary{background:transparent;color:var(--ptb-text);border:1px solid var(--ptb-border)}
+
+@media (hover:hover){
+  .ptb-btn:hover{filter:brightness(1.05);box-shadow:0 0 0 2px rgba(224,177,0,.25),0 6px 14px rgba(0,0,0,.25);transform:translateY(-1px)}
+  .ptb-btn.secondary:hover{border-color:var(--ptb-accent);color:var(--ptb-accent);box-shadow:0 0 0 2px rgba(224,177,0,.2) inset}
+}
+.ptb-btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--ptb-focus-ring);transform:translateY(-1px)}
+.ptb-btn:active{transform:translateY(1px);box-shadow:0 0 0 2px rgba(0,0,0,.3) inset}
+.ptb-btn[aria-disabled="true"],.ptb-btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* Lists */
+.ptb-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.ptb-list a{display:block;padding:8px 10px;border:1px solid var(--ptb-border);border-radius:8px;background:rgba(255,255,255,0.02)}
+.ptb-list a:hover{border-color:var(--ptb-accent)}
+
+/* Tables */
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;border-bottom:1px solid var(--ptb-border)}
+th{text-align:left;white-space:nowrap}
+td{text-align:left}
+td[align="right"], .num{text-align:right}
+thead th{position:sticky;top:0;background:linear-gradient(0deg,var(--ptb-card),var(--ptb-card));z-index:1}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+
+/* ========== SurveyJS (survey-core v2) theming to match PTB colors ========== */
+/* Root */
+.sd-root-modern,
+.sd-root-modern .sd-body{
+  background:transparent !important;
+  color:var(--ptb-text) !important;
+}
+
+/* Page/panel containers */
+.sd-page,
+.sd-panel,
+.sd-panel__content{
+  background:transparent !important;
+  border:none !important;
+  color:var(--ptb-text) !important;
+}
+
+/* Question titles and descriptions */
+.sd-element__title, .sd-title, .sd-description{
+  color:var(--ptb-text) !important;
+}
+.sd-description{color:var(--ptb-muted) !important}
+
+/* Inputs (text/number/date/textarea/select) */
+.sd-input, .sd-dropdown, .sd-text, .sd-comment, .sd-selectbase__label{
+  background:var(--ptb-input-bg) !important;
+  color:var(--ptb-text) !important;
+  border:1px solid var(--ptb-input-border) !important;
+  border-radius:10px !important;
+}
+.sd-input:focus, .sd-dropdown:focus, .sd-text:focus, .sd-comment:focus{
+  outline:none !important;
+  box-shadow:0 0 0 3px var(--ptb-focus-ring) !important;
+  border-color:var(--ptb-accent) !important;
+}
+
+/* Dropdown popup */
+.sd-list, .sd-popup, .sd-list__filter{
+  background:var(--ptb-card) !important;
+  color:var(--ptb-text) !important;
+  border:1px solid var(--ptb-border) !important;
+}
+.sd-list__item:hover{background:rgba(255,255,255,.06) !important}
+.sd-list__item--selected{background:rgba(224,177,0,.18) !important;border-left:3px solid var(--ptb-accent) !important}
+
+/* Rating */
+.sd-rating{--sjs-rating-selected-color: var(--ptb-accent)}
+.sd-rating .sd-rating__item .sd-rating__item-icon{color:#8993a4 !important}
+.sd-rating .sd-rating__item--selected .sd-rating__item-icon{color:var(--ptb-accent) !important}
+.sd-rating .sd-rating__item:hover .sd-rating__item-icon{filter:brightness(1.2)}
+
+/* Buttons (Next/Complete) */
+.sd-btn{
+  background:var(--ptb-accent) !important;
+  color:#1b1b1b !important;
+  border:none !important;
+  border-radius:10px !important;
+  font-weight:700 !important;
+  transition:filter .15s ease, box-shadow .15s ease, transform .06s ease !important;
+}
+@media (hover:hover){
+  .sd-btn:hover{filter:brightness(1.05) !important;box-shadow:0 0 0 2px rgba(224,177,0,.25),0 6px 14px rgba(0,0,0,.25) !important;transform:translateY(-1px) !important}
+}
+.sd-btn:focus-visible{outline:none !important;box-shadow:0 0 0 3px var(--ptb-focus-ring) !important}
+.sd-btn:active{transform:translateY(1px) !important}
+
+/* Errors */
+.sd-question--error .sd-input,
+.sd-question--error .sd-dropdown,
+.sd-question--error .sd-text,
+.sd-question--error .sd-comment{
+  border-color:#ff5c5c !important;
+  box-shadow:0 0 0 2px rgba(255,92,92,.2) !important;
+}
+.sd-error{color:#ff8f8f !important}
+
+/* Progress bar */
+.sd-progress{background:rgba(255,255,255,.08) !important;border-radius:999px !important}
+.sd-progress__bar{background:var(--ptb-accent) !important}
+
+/* Panels around the dynamic player items */
+.sd-paneldynamic__container, .sd-paneldynamic__panel, .sd-paneldynamic__footer{
+  background:transparent !important;
+  border:none !important;
+}
+.sd-paneldynamic__panel{
+  padding:12px !important;
+  border:1px solid var(--ptb-border) !important;
+  border-radius:10px !important;
+  background:rgba(255,255,255,.02) !important;
+}
+
+/* Survey footer separator */
+.sd-footer{border-top:1px solid var(--ptb-border) !important}
+
+/* ========== Responsive tweaks ========== */
+/* Cards and tables on small screens */
+@media (max-width:640px){
+  .ptb-card{padding:14px}
+  th,td{padding:10px 8px}
+  thead th{position:static}
+  .ptb-actions{gap:10px}
+  .ptb-title{font-size:15px}
+}
+
+/* Medium screens */
+@media (min-width:641px) and (max-width:1024px){
+  .ptb-main{padding:20px}
+  .ptb-title{font-size:16px}
+}
+
+/* Prefer-reduced-motion */
+@media (prefers-reduced-motion:reduce){
+  .ptb-btn,.sd-btn{transition:none}
+}
+
+
+/* ===== SurveyJS hard overrides: dark surface, visible labels, button-group ===== */
+
+/* Глобални CSS променливи на темата */
+.sd-root-modern{
+  --sjs-general-backcolor: var(--ptb-card);
+  --sjs-general-forecolor: var(--ptb-text);
+  --sjs-primary-backcolor: var(--ptb-accent);
+  --sjs-primary-forecolor: #1b1b1b;
+  --sjs-border-default: var(--ptb-border);
+  --sjs-secondary-backcolor: #0e1730;
+  --sjs-secondary-forecolor: var(--ptb-text);
+}
+
+/* Премахни белите контейнери */
+.sd-header,
+.sd-container-modern,
+.sd-root-modern .sd-body,
+.sd-page,
+.sd-panel,
+.sd-panel__content{
+  background: transparent !important;
+}
+
+/* Картички около въпросите */
+.sd-question, .sd-element--with-frame{
+  background: rgba(255,255,255,.03) !important;
+  border: 1px solid var(--ptb-border) !important;
+  border-radius: 12px !important;
+}
+.sd-question__content{ background: transparent !important; }
+
+/* Видими заглавия/етикети */
+.sd-element__title, .sd-title, .sd-description{ color: var(--ptb-text) !important; }
+.sd-description{ color: var(--ptb-muted) !important; }
+.sd-selectbase__label{ color: var(--ptb-text) !important; }
+
+/* Инпут поля */
+.sd-input, .sd-dropdown, .sd-text, .sd-comment{
+  background: var(--ptb-input-bg) !important;
+  color: var(--ptb-text) !important;
+  border: 1px solid var(--ptb-input-border) !important;
+  border-radius: 10px !important;
+}
+.sd-input:focus, .sd-dropdown:focus, .sd-text:focus, .sd-comment:focus{
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ptb-focus-ring) !important;
+  border-color: var(--ptb-accent) !important;
+}
+
+/* Radiogroup като бутон-група */
+.sd-button-group{ gap: 6px !important; }
+.sd-button-group__item{
+  background: var(--ptb-input-bg) !important;
+  color: var(--ptb-text) !important;
+  border: 1px solid var(--ptb-input-border) !important;
+  border-radius: 10px !important;
+  padding: 8px 12px !important;
+  transition: filter .15s ease, box-shadow .15s ease, transform .06s ease !important;
+}
+.sd-button-group__item:hover{ filter: brightness(1.1); }
+.sd-button-group__item--selected{
+  background: var(--ptb-accent) !important;
+  color: #1b1b1b !important;
+  border-color: var(--ptb-accent) !important;
+}
+
+/* Boolean switch и radio индикатори – гарантирана видимост */
+.sd-boolean, .sd-radiogroup, .sd-checkbox{ color: var(--ptb-text) !important; }
+.sd-radiogroup__item, .sd-checkbox__item{ background: transparent !important; }
+
+/* Навигационни бутони */
+.sd-btn{
+  background: var(--ptb-accent) !important;
+  color: #1b1b1b !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+}
+@media (hover:hover){
+  .sd-btn:hover{ filter: brightness(1.05) !important; box-shadow: 0 0 0 2px rgba(224,177,0,.25),0 6px 14px rgba(0,0,0,.25) !important; transform: translateY(-1px) !important; }
+}
+.sd-btn:focus-visible{ outline: none !important; box-shadow: 0 0 0 3px var(--ptb-focus-ring) !important; }
+.sd-btn:active{ transform: translateY(1px) !important; }
+
+/* ===== SurveyJS: rating – контраст, размер, hover, избрано ===== */
+.sd-question{ padding:14px !important; background:rgba(255,255,255,.03) !important; border:1px solid var(--ptb-border) !important; border-radius:12px !important; }
+.sd-question__content{ background:transparent !important; }
+
+.sd-rating{
+  --ptb-rating-size: 44px;
+  --ptb-rating-gap: 12px;
+}
+.sd-rating .sd-rating__item{
+  width:var(--ptb-rating-size) !important;
+  height:var(--ptb-rating-size) !important;
+  margin-right:var(--ptb-rating-gap) !important;
+  border-radius:50% !important;
+  background:#0e1730 !important;
+  border:1px solid var(--ptb-input-border) !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  transition:box-shadow .15s ease, background-color .15s ease, transform .06s ease, border-color .15s ease !important;
+}
+.sd-rating .sd-rating__item-text{ color:var(--ptb-text) !important; font-weight:600 !important; }
+@media (hover:hover){
+  .sd-rating .sd-rating__item:hover{
+    border-color:var(--ptb-accent) !important;
+    box-shadow:0 0 0 2px rgba(224,177,0,.2) !important;
+    transform:translateY(-1px) !important;
   }
 }
+.sd-rating .sd-rating__item--selected{
+  background:rgba(224,177,0,.15) !important;
+  border-color:var(--ptb-accent) !important;
+  box-shadow:0 0 0 3px rgba(224,177,0,.35) inset !important;
+}
+.sd-rating .sd-rating__item--selected .sd-rating__item-text{ color:var(--ptb-accent) !important; }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+/* Минимален/максимален текст – да се вижда ясно */
+.sd-rating .sd-rating__min-text,
+.sd-rating .sd-rating__max-text{
+  color:var(--ptb-muted) !important;
+  opacity:1 !important;
+  font-weight:600 !important;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Dropdown и етикети – консистентен контраст */
+.sd-selectbase__label{ color:var(--ptb-text) !important; }
+.sd-input, .sd-dropdown{ background:var(--ptb-input-bg) !important; color:var(--ptb-text) !important; border:1px solid var(--ptb-input-border) !important; }
+.sd-input:focus, .sd-dropdown:focus{ box-shadow:0 0 0 3px var(--ptb-focus-ring) !important; border-color:var(--ptb-accent) !important; }
+
+/* ===== SurveyJS dropdown popup fixes (dark + hover) ===== */
+.sd-popup,
+.sd-list{
+  background: var(--ptb-card) !important;
+  color: var(--ptb-text) !important;
+  border: 1px solid var(--ptb-border) !important;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+/* Филтър (търсене) в popup-а да не е бял */
+.sd-list__filter{
+  background: transparent !important;
+  border-bottom: 1px solid var(--ptb-border) !important;
+  padding: 8px !important;
+}
+.sd-list__filter .sd-input{
+  background: var(--ptb-input-bg) !important;
+  color: var(--ptb-text) !important;
+  border: 1px solid var(--ptb-input-border) !important;
+  border-radius: 10px !important;
+}
+.sd-list__filter .sd-input::placeholder{ color: var(--ptb-muted) !important; opacity: .85 !important; }
+
+/* Редове */
+.sd-list__item{ background: transparent !important; }
+.sd-list__item:hover{
+  background: rgba(224,177,0,.12) !important; /* златист hover */
+  color: var(--ptb-text) !important;
+}
+.sd-list__item .sv-string-viewer{ color: inherit !important; }
+
+/* Избран ред */
+.sd-list__item--selected{
+  background: var(--ptb-accent) !important;
+  color: #1b1b1b !important;
+}
+.sd-list__item--selected .sv-string-viewer{ color: #1b1b1b !important; }
+
+/* Забранени (disabled) редове – да не светят в бяло и без hover */
+.sd-list__item--disabled{
+  background: rgba(255,255,255,.03) !important;
+  color: var(--ptb-muted) !important;
+  opacity: .65 !important;
+}
+.sd-list__item--disabled .sv-string-viewer{ color: var(--ptb-muted) !important; }
+.sd-list__item--disabled:hover{ background: rgba(255,255,255,.03) !important; }
+
+/* Сuffix зони (иконки/бутон за изчистване) да не вкарват светли квадрати */
+.sd-input__suffix, .sd-input__prefix{ background: transparent !important; }
+
+/* Когато dropdown е фокусиран и popup е отворен – плавен, неагресивен контур */
+.sd-dropdown:focus-within{
+  box-shadow: 0 0 0 2px var(--ptb-focus-ring) !important;
+  border-color: var(--ptb-accent) !important;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+
+/* ===== SurveyJS dropdown hover fix (consistent gold, no gray bar) ===== */
+.sd-list,
+.sd-popup{
+  background: var(--ptb-card) !important;
+  color: var(--ptb-text) !important;
+  border: 1px solid var(--ptb-border) !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* unify row anatomy and radius */
+.sd-list__item,
+.sd-list__item .sd-list__item-body{
+  border-radius: 10px !important;
+  background: transparent !important;
 }
+
+/* hover/focus on non-selected rows */
+.sd-list__item:hover,
+.sd-list__item:hover .sd-list__item-body,
+.sd-list__item--hover,
+.sd-list__item--hover .sd-list__item-body,
+.sd-list__item:focus,
+.sd-list__item:focus .sd-list__item-body{
+  background: rgba(224,177,0,.12) !important; /* gold tint */
+  color: var(--ptb-text) !important;
+}
+
+/* selected row stays solid gold */
+.sd-list__item--selected,
+.sd-list__item--selected .sd-list__item-body{
+  background: var(--ptb-accent) !important;
+  color: #1b1b1b !important;
+}
+.sd-list__item--selected:hover,
+.sd-list__item--selected:hover .sd-list__item-body{
+  background: var(--ptb-accent) !important;
+}
+
+/* disabled rows never light up on hover */
+.sd-list__item--disabled,
+.sd-list__item--disabled .sd-list__item-body{
+  background: rgba(255,255,255,.03) !important;
+  color: var(--ptb-muted) !important;
+  opacity: .7 !important;
+}
+.sd-list__item--disabled:hover,
+.sd-list__item--disabled:hover .sd-list__item-body{
+  background: rgba(255,255,255,.03) !important;
+}
+
+/* search field inside popup (dark) */
+.sd-list__filter{ background: transparent !important; border-bottom: 1px solid var(--ptb-border) !important; padding: 8px !important; }
+.sd-list__filter .sd-input{ background: var(--ptb-input-bg) !important; color: var(--ptb-text) !important; border: 1px solid var(--ptb-input-border) !important; border-radius: 10px !important; }
+.sd-list__filter .sd-input::placeholder{ color: var(--ptb-muted) !important; }
+
+/* suffix/prefix areas */
+.sd-input__suffix, .sd-input__prefix{ background: transparent !important; }

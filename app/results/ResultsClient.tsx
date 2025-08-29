@@ -17,6 +17,8 @@ type Row = {
   position_metric: number;
 };
 
+type CommentItem = { author: string; note: string };
+
 type SummaryResponse = {
   ok: true;
   date: string;
@@ -25,6 +27,8 @@ type SummaryResponse = {
   computed_team_overall: number | null;     // изчислена (равно тегло по играч)
   delta_self_team_overall_vs_computed: number | null;
   rows: Row[];
+  comments: CommentItem[];
+
 };
 
 export default function ResultsClient() {
@@ -115,7 +119,7 @@ export default function ResultsClient() {
           <thead>
             <tr>
               <th style={th} title={tips.player}>Играч</th>
-              <th style={th} title={tips.n}>N</th>
+              <th style={th} title={tips.n}>Брой оценки</th>
               <th style={th} title={tips.overall}>Overall</th>
               <th style={th} title={tips.self}>Self</th>
               <th style={th} title={tips.deltaSelf}>Δ(Self-Other)</th>
@@ -146,6 +150,24 @@ export default function ResultsClient() {
           </tbody>
         </table>
       </div>
+       {data && data.comments && data.comments.length > 0 && (
+        <div style={{ marginTop: 20 }}>
+          <h3 style={{ margin: '16px 0 8px' }}>Коментари:</h3>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 8 }}>
+            {data.comments.map((c, i) => (
+              <li key={`${c.author}-${i}`} style={{
+                border: '1px solid var(--ptb-border)',
+                borderRadius: 10,
+                padding: '10px 12px',
+                background: 'rgba(255,255,255,.02)'
+              }}>
+                <div style={{ fontWeight: 700, marginBottom: 4 }}>{c.author}</div>
+                <div style={{ color: 'var(--ptb-text)' }}>{c.note}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

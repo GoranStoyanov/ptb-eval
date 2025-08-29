@@ -15,7 +15,8 @@ type EvalRow = {
   focus: number;
   teamplay: number;
   position_metric: number;
-  team_overall: number; // анкета: отборна оценка (1–5) за мача
+  team_overall: number;
+  notes?: string | null;
 };
 
 type SelfRow = {
@@ -54,7 +55,7 @@ export async function GET(req: NextRequest) {
     const evalRows = evalRowsAll.filter((r) => r.match_date === date);
     const selfRows = selfRowsAll.filter((r) => r.match_date === date);
 
-    // Анкетна „team_overall“ средно по различни submissionId (по един на човек)
+    // Анкетна team_overall средно по submissionId
     const overallBySubmission = new Map<string, number>();
     for (const r of evalRows) {
       const v = Number(r.team_overall);
@@ -94,13 +95,13 @@ export async function GET(req: NextRequest) {
       byPlayer[k] = o;
     }
 
-    // Самооценки по играч (за справка в таблицата)
+    // Самооценки по играч (dedupe по submissionId+player)
     const selfByPlayer: Record<string, { sum: number; count: number }> = {};
-    const seen = new Set<string>();
+    const seenSelf = new Set<string>();
     for (const r of selfRows) {
       const key = `${r.submissionId}::${r.self_player}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
+      if (seenSelf.has(key)) continue;
+      seenSelf.add(key);
       const k = r.self_player;
       const obj = selfByPlayer[k] ?? { sum: 0, count: 0 };
       obj.sum += Number(r.self_score || 0);
@@ -129,24 +130,43 @@ export async function GET(req: NextRequest) {
       return { player: name, count: o.count, overall, self_avg, delta_self_vs_others, ...avg };
     });
 
-    // Изчислена отборна: средно от per-player overall (равно тегло по играч)
+    // Изчислена отборна от per-player overall (равно тегло по играч)
     const computed_team_overall =
       rows.length ? +(rows.reduce((s, r) => s + r.overall, 0) / rows.length).toFixed(2) : null;
 
-    // Δ между анкетната team_overall и изчислената отборна
+    // Δ(self team_overall от анкетите − изчислена)
     const delta_self_team_overall_vs_computed =
       team_overall_avg != null && computed_team_overall != null
         ? +(team_overall_avg - computed_team_overall).toFixed(2)
         : null;
 
+    // Коментари по submissionId, автор от selfRows.self_player
+    const authorBySubmission = new Map<string, string>();
+    for (const s of selfRows) if (!authorBySubmission.has(s.submissionId)) authorBySubmission.set(s.submissionId, s.self_player);
+
+    const seenComment = new Set<string>();
+    const comments: { author: string; note: string }[] = [];
+    for (const r of evalRows) {
+      const sid = r.submissionId;
+      if (seenComment.has(sid)) continue;
+      seenComment.add(sid);
+      const raw = (r.notes ?? '').toString();
+      const norm = raw.trim().toLowerCase();
+      if (!raw.trim()) continue;
+      if (norm === 'не') continue; // специален филтър
+      const author = authorBySubmission.get(sid) ?? '—';
+      comments.push({ author, note: raw.trim() });
+    }
+
     return NextResponse.json({
       ok: true,
       date,
       total_submissions: distinctSubmissions,
-      team_overall_avg,                     // „анкета“
-      computed_team_overall,               // „изчислена“
-      delta_self_team_overall_vs_computed, // Δ(self - computed)
-      rows
+      team_overall_avg,
+      computed_team_overall,
+      delta_self_team_overall_vs_computed,
+      rows,
+      comments
     });
   } catch (e) {
     return NextResponse.json({ ok: false, error: String(e) }, { status: 500 });
