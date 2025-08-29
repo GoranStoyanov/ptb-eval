@@ -1,4 +1,3 @@
-// app/api/summary/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
 const API_URL = process.env.BASEROW_API_URL!;
@@ -6,17 +5,40 @@ const TABLE_ID = process.env.BASEROW_TABLE_ID!;
 const SELF_TABLE_ID = process.env.BASEROW_SELF_TABLE_ID!;
 const TOKEN = process.env.BASEROW_TOKEN!;
 
-async function fetchAll(tableId: string) {
-  const out: any[] = [];
+type EvalRow = {
+  submissionId: string;
+  match_date: string;
+  player: string;
+  technique: number;
+  positioning: number;
+  engagement: number;
+  focus: number;
+  teamplay: number;
+  position_metric: number;
+};
+
+type SelfRow = {
+  submissionId: string;
+  match_date: string;
+  self_player: string;
+  self_score: number;
+};
+
+type BaserowListResponse<T> = {
+  results: T[];
+  next: string | null;
+};
+
+async function fetchAll<T>(tableId: string): Promise<T[]> {
+  const out: T[] = [];
   let url = `${API_URL}/api/database/rows/table/${tableId}/?user_field_names=true&page=1&size=200`;
   for (;;) {
     const res = await fetch(url, { headers: { Authorization: `Token ${TOKEN}` }, cache: 'no-store' });
     if (!res.ok) throw new Error(`Baserow fetch failed ${res.status}`);
-    const json = await res.json();
-    out.push(...(json?.results || []));
-    const next = json?.next;
-    if (!next) break;
-    url = next;
+    const json = (await res.json()) as BaserowListResponse<T>;
+    out.push(...(json.results ?? []));
+    if (!json.next) break;
+    url = json.next;
   }
   return out;
 }
@@ -27,16 +49,16 @@ export async function GET(req: NextRequest) {
     const date = searchParams.get('date');
     if (!date) return NextResponse.json({ ok: false, error: 'Missing date' }, { status: 400 });
 
-    const [evalRowsAll, selfRowsAll] = await Promise.all([fetchAll(TABLE_ID), fetchAll(SELF_TABLE_ID)]);
+    const [evalRowsAll, selfRowsAll] = await Promise.all([fetchAll<EvalRow>(TABLE_ID), fetchAll<SelfRow>(SELF_TABLE_ID)]);
     const evalRows = evalRowsAll.filter((r) => r.match_date === date);
     const selfRows = selfRowsAll.filter((r) => r.match_date === date);
 
-    const byPlayer: Record<string, any> = {};
+    const byPlayer: Record<string, { player: string; count: number; sums: Record<'technique'|'positioning'|'engagement'|'focus'|'teamplay'|'position_metric', number> }> = {};
     for (const r of evalRows) {
-      const k = r.player as string;
+      const k = r.player;
       if (!k) continue;
-      const o = byPlayer[k] || { player: k, count: 0, sums: { technique:0, positioning:0, engagement:0, focus:0, teamplay:0, position_metric:0 } };
-      o.count++;
+      const o = byPlayer[k] ?? { player: k, count: 0, sums: { technique: 0, positioning: 0, engagement: 0, focus: 0, teamplay: 0, position_metric: 0 } };
+      o.count += 1;
       o.sums.technique += Number(r.technique || 0);
       o.sums.positioning += Number(r.positioning || 0);
       o.sums.engagement += Number(r.engagement || 0);
@@ -46,17 +68,16 @@ export async function GET(req: NextRequest) {
       byPlayer[k] = o;
     }
 
-    const selfByPlayer: Record<string, { sum:number; count:number }> = {};
-    // dedupe by submissionId so one self row per submission
+    const selfByPlayer: Record<string, { sum: number; count: number }> = {};
     const seen = new Set<string>();
     for (const r of selfRows) {
       const key = `${r.submissionId}::${r.self_player}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      const k = r.self_player as string;
-      const obj = selfByPlayer[k] || { sum: 0, count: 0 };
+      const k = r.self_player;
+      const obj = selfByPlayer[k] ?? { sum: 0, count: 0 };
       obj.sum += Number(r.self_score || 0);
-      obj.count++;
+      obj.count += 1;
       selfByPlayer[k] = obj;
     }
 
@@ -78,11 +99,10 @@ export async function GET(req: NextRequest) {
       return { player: name, count: o.count, overall, self_avg, delta_self_vs_others, ...avg };
     });
 
-    // distinct submissions that evaluated anyone on that date
-    const distinctSubmissions = new Set(evalRows.map((r: any) => r.submissionId)).size;
+    const distinctSubmissions = new Set(evalRows.map((r) => r.submissionId)).size;
 
     return NextResponse.json({ ok: true, date, total_submissions: distinctSubmissions, rows });
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: String(e?.message || e) }, { status: 500 });
+  } catch (e) {
+    return NextResponse.json({ ok: false, error: String(e) }, { status: 500 });
   }
 }
