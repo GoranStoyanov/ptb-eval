@@ -17,14 +17,38 @@ type Row = {
   position_metric: number;
 };
 
+type SummaryResponse = {
+  ok: true;
+  date: string;
+  total_submissions: number;
+  team_overall_avg: number | null;          // анкета
+  computed_team_overall: number | null;     // изчислена (равно тегло по играч)
+  delta_self_team_overall_vs_computed: number | null;
+  rows: Row[];
+};
+
 export default function ResultsClient() {
   const sp = useSearchParams();
   const router = useRouter();
   const qDate = sp.get('date') || '';
   const [dates, setDates] = useState<string[]>([]);
   const [date, setDate] = useState<string>(qDate);
-  const [data, setData] = useState<{ rows: Row[]; total_submissions: number } | null>(null);
+  const [data, setData] = useState<SummaryResponse | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const tips = {
+    player: 'Играчът, за когото са агрегирани оценките.',
+    n: 'Брой получени оценки за този играч на избраната дата.',
+    overall: 'Средно от 6-те компонента (Technique, Positioning, Engagement, Focus, Teamplay, Position metric).',
+    self: 'Самооценка на играча за избраната дата.',
+    deltaSelf: 'Разлика: Self − Overall (положително = играчът се оценява по-високо от останалите).',
+    technique: 'Първо докосване, точност на пасове, контрол върху топката.',
+    positioning: 'Заемане на зони, движение без топка, покриване на пространства.',
+    engagement: 'Интензитет, усилие, единоборства и преса.',
+    focus: 'Концентрация, реакция, минимизиране на грешки.',
+    teamplay: 'Комуникация, взаимодействие, дисциплина.',
+    position_metric: 'Показател според позицията (вратар: спасявания; защитник: 1v1/пресичания; халф: контрол/преход; нападател: завършващи удари).'
+  };
 
   useEffect(() => {
     (async () => {
@@ -46,8 +70,8 @@ export default function ResultsClient() {
     setLoading(true);
     fetch(`/api/summary?date=${encodeURIComponent(date)}`, { cache: 'no-store' })
       .then(res => res.json())
-      .then(json => {
-        if (json?.ok) setData({ rows: json.rows, total_submissions: json.total_submissions });
+      .then((json: SummaryResponse) => {
+        if (json?.ok) setData(json);
       })
       .finally(() => setLoading(false));
   }, [date]);
@@ -58,7 +82,7 @@ export default function ResultsClient() {
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 16 }}>
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
         <label htmlFor="date">Дата:</label>
         <select
           id="date"
@@ -71,8 +95,18 @@ export default function ResultsClient() {
         >
           {dates.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
-        <div style={{ marginLeft: 'auto' }}>
-          {loading ? 'Зареждане…' : data ? `Подадени формуляри: ${data.total_submissions}` : ''}
+
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 16, alignItems: 'center' }}>
+          {loading ? (
+            <span>Зареждане…</span>
+          ) : data ? (
+            <>
+              <span>Подадени формуляри: {data.total_submissions}</span>
+              <span>Отборна (анкета): {data.team_overall_avg != null ? data.team_overall_avg.toFixed(2) : '—'}</span>
+              <span>Отборна (изчислена): {data.computed_team_overall != null ? data.computed_team_overall.toFixed(2) : '—'}</span>
+              <span>Δ(Self−Computed): {data.delta_self_team_overall_vs_computed != null ? data.delta_self_team_overall_vs_computed.toFixed(2) : '—'}</span>
+            </>
+          ) : null}
         </div>
       </div>
 
@@ -80,17 +114,17 @@ export default function ResultsClient() {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
-              <th style={th}>Играч</th>
-              <th style={th}>N</th>
-              <th style={th}>Overall</th>
-              <th style={th}>Self</th>
-              <th style={th}>Δ(Self-Other)</th>
-              <th style={th}>Technique</th>
-              <th style={th}>Positioning</th>
-              <th style={th}>Engagement</th>
-              <th style={th}>Focus</th>
-              <th style={th}>Teamplay</th>
-              <th style={th}>Position metric</th>
+              <th style={th} title={tips.player}>Играч</th>
+              <th style={th} title={tips.n}>N</th>
+              <th style={th} title={tips.overall}>Overall</th>
+              <th style={th} title={tips.self}>Self</th>
+              <th style={th} title={tips.deltaSelf}>Δ(Self-Other)</th>
+              <th style={th} title={tips.technique}>Technique</th>
+              <th style={th} title={tips.positioning}>Positioning</th>
+              <th style={th} title={tips.engagement}>Engagement</th>
+              <th style={th} title={tips.focus}>Focus</th>
+              <th style={th} title={tips.teamplay}>Teamplay</th>
+              <th style={th} title={tips.position_metric}>Position metric</th>
             </tr>
           </thead>
           <tbody>
